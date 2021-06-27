@@ -1,88 +1,97 @@
-//#1 METODO NORMAL
+// #region 1
 (() => {
-  let tasks = []; // creo variable para luego llenarlo con mis tareas
+  let tasks = [];
   function execTask(task, time = 3000) {
     setTimeout(() => {
       tasks.push(task);
-      console.log(`${task} was executed`);
+      console.log(`The task (${task}) was executed`);
     }, time);
-  } // defino la funcion, pero no la ejecuto
+  }
 
-  console.log('Mando a ejecutar la tarea "desayunar" '); // mostramos console
-  execTask('desayunar'); // mandamos a ejecutar pero no esperamos los 3 segundos
+  console.log('Mando a ejecutar la tarea "desayunar" ');
+  execTask('desayunar'); // async
 
-  console.log('Mando a ejecutar la tarea "codear" '); // mostramos console
-  execTask('codear'); // mandamos a ejecutar pero no esperamos los 3 segundos
+  console.log('Mando a ejecutar la tarea "codear" ');
+  execTask('codear'); // async
 
-  console.log('Mando a ejecutar la tarea "dormir" '); // mostramos console
-  execTask('dormir'); // mandamos a ejecutar pero no esperamos los 3 segundos
+  console.log('Mando a ejecutar la tarea "dormir" ');
+  execTask('dormir'); // async
 
-  console.log('TASKS', tasks); // mostramos consola
-  // ...llegado los 3 segundos, mostramos los consoles "..was executed" al mismo tiempo
+  console.log('TASKS', tasks);
 })();
-/* OUTPUT DEMORA 3 SEGUNDOS
-    > Mando a ejecutar la tarea "desayunar" 
-    > Mando a ejecutar la tarea "codear" 
-    > Mando a ejecutar la tarea "dormir" 
-    > TASKS []
-    > desayunar was executed
-    > codear was executed
-    > dormir was executed 
+/* OUTPUT (3 sec)
+> Mando a ejecutar la tarea "desayunar" 
+> Mando a ejecutar la tarea "codear" 
+> Mando a ejecutar la tarea "dormir" 
+> TASKS []
+> The task (desayunar) was executed
+> The task (codear) was executed
+> The task (dormir) was executed 
  */
+// #endregion
 
-// #2 aync-await
-// - retornan una Promise, manejando la ejecucion de modo SYNC
+// #region 2
 (async () => {
-  let tasks = []; // creo variable para luego llenarlo con mis tareas
+  let tasks = [];
 
   function execTask(task, time = 3000) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         tasks.push(task);
-        console.log(`${task} was executed`);
-        resolve();
+        console.log(`The task (${task}) was executed`);
+        resolve(); // it's OK
       }, time);
     });
-  } // defino la funcion (Promise), pero no la ejecuto
+  } // return a Promise
 
-  console.log('Mando a ejecutar la tarea "desayunar" '); // mostramos console
-  await execTask('desayunar'); // mandamos a ejecutar y ESPERAMOS 3 segundos
+  console.time('EXECUTION FINISHED IN ');
 
-  console.log('Mando a ejecutar la tarea "codear" '); // mostramos console
-  await execTask('codear'); // mandamos a ejecutar y ESPERAMOS 3 segundos
+  console.log('Mando a ejecutar la tarea "desayunar" ');
+  await execTask('desayunar'); // execute and WAIT 3 sec
 
-  console.log('Mando a ejecutar la tarea "dormir" '); // mostramos console
-  await execTask('dormir'); // mandamos a ejecutar y ESPERAMOS 3 segundos
+  console.log('Mando a ejecutar la tarea "codear" ');
+  await execTask('codear', 5000); // execute and WAIT 5 sec
 
-  console.log('TASKS', tasks); // mostramos consola
+  console.log('Mando a ejecutar la tarea "dormir" ');
+  await execTask('dormir'); // execute and WAIT 3 sec
+
+  console.log('TASKS', tasks);
+
+  console.timeEnd('EXECUTION FINISHED IN ');
 })();
-/* OUTPUT DEMORA 9 SEGUNDOS
+/* OUTPUT (11 sec)
     > Mando a ejecutar la tarea "desayunar" 
-    > desayunar was executed
+    > The task (desayunar) was executed
     > Mando a ejecutar la tarea "codear" 
-    > codear was executed
+    > The task (codear) was executed
     > Mando a ejecutar la tarea "dormir" 
-    > dormir was executed
+    > The task (dormir) was executed
     > TASKS (3) ["desayunar", "codear", "dormir"]
+    > EXECUTION FINISHED IN : 11005.6328125 ms
  */
+// #endregion
 
-// #3 Promise.all
+// #region 3
 (() => {
-  let tasks = []; // creo variable para luego llenarlo con mis tareas
+  let tasks = [];
 
   function execTask(task, time = 3000) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        if (task !== 'codear') {
-          tasks.push(task);
-          console.log(`${task} was executed`);
-          resolve();
-        } else {
-          reject('Nooooo!!');
-        }
+        // if (task !== 'codear') {
+        //   tasks.push(task);
+        //   console.log(`${task} was executed`);
+        //   resolve();
+        // } else {
+        //   reject('Nooooo!!');
+        // }
+
+        tasks.push(task);
+        console.log(`${task} was executed`);
+        resolve();
       }, time);
     });
-  } // defino la funcion (Promise), pero no la ejecuto
+  }
 
   console.log(`Mando a ejecutar TODAS las tareas al mismo tiempo 
         - desayunar (2s)
@@ -90,17 +99,29 @@
         - dormir    (4s)
     `);
 
-  console.time('async-await + Promise.all');
+  console.time('EXECUTION FINISHED IN');
   Promise.all([
     execTask('desayunar', 2000),
     execTask('codear', 8000),
     execTask('dormir', 4000)
   ])
     .then(() => {
-      console.log('TASKS', tasks); // mostramos consola
-      console.timeEnd('async-await + Promise.all');
+      console.log('TASKS', tasks);
+      console.timeEnd('EXECUTION FINISHED IN');
     })
     .catch((err) => {
-      console.error('Hubo un error!! 😢', err);
+      console.error('There was an error!! 😢', err);
     });
 })();
+/* (8 sec)
+    > Mando a ejecutar TODAS las tareas al mismo tiempo 
+            - desayunar (2s)
+            - codear    (8s)
+            - dormir    (4s)
+    >
+    > desayunar was executed
+    > dormir was executed
+    > codear was executed
+    > TASKS (3) ["desayunar", "dormir", "codear"]
+    > EXECUTION FINISHED IN: 8002.407958984375 ms
+*/
